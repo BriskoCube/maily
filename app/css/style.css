@@ -1,0 +1,65 @@
+body{
+    margin:0;
+}
+
+body *{
+    font-family: Tahoma, Geneva, sans-serif;
+}
+.mails h2{
+    font-size: 1.1em;
+    font-weight: normal;
+}
+
+.mails h3{
+    font-size: 1em;
+    font-weight: normal;
+}
+
+.mails p{
+    color: #8c8c8c;
+}
+
+.mails h2, .mails h3, .mails p{
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+
+.mails{
+    display: flex;
+}
+
+.mails .desc{
+    background-color: #fbfbfb;
+    height: 100vh;
+    max-width:300px;
+    width:300px;
+    border-right: #bdbdbd 1px solid;
+}
+
+.mails .desc > div{
+    padding: 11px 13px;
+
+}
+
+.mails .desc > div:hover{
+    background-color: #D3D8FF;
+    cursor: pointer;
+}
+
+.mails .content{
+    flex:3;
+    background-color: white;
+    height: 100vh;
+}
+
+.mails .active{
+    border-left: #5682d4 4px solid;
+}
+
+.ellips{
+    width: 96%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

@@ -84,7 +84,8 @@ var MailParser = function(mail, file){
 
     // Split header and message
     var header = mail.substr(0,mail.indexOf("\n\n"));
-    var message = mail.substr(mail.indexOf("\n\n")+2);
+    var temporyMessage = mail.substr(mail.indexOf("\n\n")+2); //may content mime informations
+
 
     var timeStamp = file.match(timeStampRegex);
 
@@ -92,26 +93,49 @@ var MailParser = function(mail, file){
     var matches, output = {
         id: parseInt(timeStamp[0]),
         headers:{},
-        message: message
+        message: temporyMessage
     };
 
     // Browse through header regex matches
     while (matches = headerRegex.exec(header)) {
-        /*var jsonHeader = {
-            key: matches[2], // key
-            data: matches[3] // value
-        }*/
-
-        //var jsonHeader = {};
-
-        //output.headers.push(jsonHeader)
 
         mimeCleaner(matches[3]);
 
-        output.headers[matches[2]] = mimeCleaner(matches[3]);//matches[3] /*mimelib.decodeMimeWord(matches[3])*/;
+        output.headers[(matches[2]).replace(/[-]{1}/g, '_')] = mimeCleaner(matches[3]);//matches[3] /*mimelib.decodeMimeWord(matches[3])*/;
     }
 
+
+
+    var message = Multipart(output.headers, temporyMessage);
+
+    output.message = message;
+
     return output;
+
+}
+
+var Boundaries = function(headers){
+
+    var boundary = false;
+
+    if(headers.hasOwnProperty('Content_Type')){
+        var regexResult = headers.Content_Type.match(/"(.+)"/)
+        if(regexResult != null && regexResult.length > 1){
+            boundary = regexResult[1];
+        }
+    }
+
+    return boundary;
+}
+
+var Multipart = function(headers, message){
+    var boundary = Boundaries(headers);
+
+
+
+    if(boundary != false){
+        return message.split(boundary)[2];
+    }
 }
 
 /**

@@ -22,10 +22,10 @@
         <div class="desc">
             <div ng-repeat="mail in mails | orderBy:'id':true" ng-click="showDetail(mail)" id="mail_{{mail.id}}" class="mail">
                 <h2 class="ellips">
-                    {{mail.headers.From}}
+                    {{mail.headers.from}}
                 </h2>
                 <h3 class="ellips">
-                    {{mail.headers.Subject}}
+                    {{mail.headers.subject}}
                 </h3>
                 <p class="content-preview ellips" ng-bind-html="mail.message | strip | oneLine">
 
@@ -34,6 +34,14 @@
         </div>
 
         <div class="content">
+            <div id="header">
+                <div>
+                    <div id="from">{{from}}</div>
+                    <div id="subject">{{subject}}</div>
+                    <div id="to">{{to}}</div>
+                </div>
+
+            </div>
             <div id="message">
 
             </div>

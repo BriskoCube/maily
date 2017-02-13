@@ -24,52 +24,52 @@ var GetEmails = function(mailLocal, domain, Callback){
 
     var returnJson = {};
 
-    // Create email path string
-    var emailsFolder = Formatter(config.dovetail.newMailPath, {
-        domain: domain,
-        user: mailLocal
-    });
+        // Create email path string
+        var emailsFolder = Formatter(config.dovetail.mailPaths[0], {
+            domain: domain,
+            user: mailLocal
+        });
 
-    // Make absolute path
-    var emailFolder = config.dovetail.path + emailsFolder;
+        // Make absolute path
+        var emailFolder = config.dovetail.path + emailsFolder;
 
-    // Lis les fichiers du dossier
-    fs.readdir(emailFolder, (err, files) => {
+        // Lis les fichiers du dossier
+        fs.readdir(emailFolder, (err, files) => {
 
-        if(!!files && files.length > 0){
+            if (!!files && files.length > 0) {
 
-            var count = 0;
-            var mails = [];
+                var count = 0;
+                var mails = [];
 
-            // Loop through folder files
-            files.forEach(file => {
+                // Loop through folder files
+                files.forEach(file => {
 
-                // Read file content
-                fs.readFile(emailFolder + file, 'utf8', function (err,data) {
+                    // Read file content
+                    fs.readFile(emailFolder + file, 'utf8', function (err, data) {
 
-                    // Avoid hidden files
-                    if(file.charAt(0) != '.')
-                        mails.push(MailParser(data, file));
+                        // Avoid hidden files
+                        if (file.charAt(0) != '.')
+                            mails.push(MailParser(data, file));
 
-                    count ++;
+                        count++;
 
-                    // Once all mails have been processed
-                    if(count == files.length)
-                        Callback({
-                            status: true,
-                            data: mails
-                        });
+                        // Once all mails have been processed
+                        if (count == files.length)
+                            Callback({
+                                status: true,
+                                data: mails
+                            });
 
+                    });
                 });
-            });
-        } else {
-            returnJson.status = false;
-            returnJson.message = config.strings.dovetail.file.no;
+            } else {
+                returnJson.status = false;
+                returnJson.message = config.strings.dovetail.file.no;
 
-            Callback(returnJson);
-        }
-    });
-}
+                Callback(returnJson);
+            }
+        });
+};
 
 /**
  * Parse text email to json
@@ -96,47 +96,64 @@ var MailParser = function(mail, file){
         message: temporyMessage
     };
 
-    // Browse through header regex matches
-    while (matches = headerRegex.exec(header)) {
+    var mimeHeader = mimelib.parseHeaders(header);
 
-        mimeCleaner(matches[3]);
+    Object.keys(mimeHeader).forEach(function (element) {
+        let value = mimeHeader[element];
 
-        output.headers[(matches[2]).replace(/[-]{1}/g, '_')] = mimeCleaner(matches[3]);//matches[3] /*mimelib.decodeMimeWord(matches[3])*/;
-    }
+        var tmpHeader = "";
 
+        for(var i = 0, len = value.length; i < len; i++){
+            tmpHeader += value[i];
+        }
 
+        output.headers[element.replace(/[-]{1}/g, '_')] = tmpHeader;
+    });
 
     var message = Multipart(output.headers, temporyMessage);
 
     output.message = message;
 
     return output;
-
-}
+};
 
 var Boundaries = function(headers){
 
     var boundary = false;
 
-    if(headers.hasOwnProperty('Content_Type')){
-        var regexResult = headers.Content_Type.match(/"(.+)"/)
+    if(headers.hasOwnProperty('content_type')){
+        var regexResult = headers.content_type.match(/"(.+)"/)
         if(regexResult != null && regexResult.length > 1){
             boundary = regexResult[1];
         }
     }
 
     return boundary;
-}
+};
 
 var Multipart = function(headers, message){
     var boundary = Boundaries(headers);
 
-
-
     if(boundary != false){
-        return message.split(boundary)[2];
+
+        var headerRegex = /(.{1,}:.{1,}\n)+[\n\r]{1,}/;
+
+        var regexDocType = /.{0,}:.{0,}(text\/(.+))[;]/;
+
+        var splittedMessage = message.split(boundary)[2];
+
+
+
+
+        headers.docType = splittedMessage.match(regexDocType)[1];
+
+        return splittedMessage.replace(headerRegex, '').replace(/[-]+$/, '');
     }
-}
+
+    headers.docType = 'unknow';
+
+    return message;
+};
 
 /**
  * Format string by replacing #{<key>} vith values form associative array
@@ -166,7 +183,7 @@ var Formatter = function(string, values){
     }
 
     return string;
-}
+};
 
 /**
  * Remove mime encode
@@ -186,7 +203,7 @@ var mimeCleaner = function(string){
     }
 
     return string;
-}
+};
 
 // Makes variables public
 exports.Formatter = Formatter;

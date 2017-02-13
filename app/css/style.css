@@ -1,5 +1,8 @@
 body{
     margin:0;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
 }
 
 body *{
@@ -27,14 +30,18 @@ body *{
 
 .mails{
     display: flex;
+    max-height: 100vh;
 }
 
 .mails .desc{
     background-color: #fbfbfb;
     height: 100vh;
-    max-width:300px;
-    width:300px;
+    max-width:350px;
+    width:350px;
+    min-width: 350px;
     border-right: #bdbdbd 1px solid;
+    max-height: 100%;
+    overflow-y: scroll;
 }
 
 .mails .desc > div{
@@ -57,9 +64,100 @@ body *{
     border-left: #5682d4 4px solid;
 }
 
+.content{
+    max-height: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#header{
+    height: 100px;
+    background-color: #dce6ef;
+    background-color: #dce6ef;
+    display: flex;
+    align-items: center;
+}
+
+#message{
+    padding: 30px;
+    flex: 1;
+    overflow: scroll;
+}
+
 .ellips{
     width: 96%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+#header > div{
+    padding: 0 30px;
+}
+
+#from, #subject, #to {
+    font-size: 0.8em;
+    padding-bottom: 10px;
+}
+#to {
+    padding-bottom: 0px;
+}
+
+#from:before, #subject:before, #to:before{
+    width: 85px;
+    display: inline-block;
+    text-align: right;
+    padding-right: 18px;
+    color:#949494;
+}
+
+#from:before{
+    content: 'From';
+}
+
+#subject:before{
+    content: 'Subject';
+}
+
+#to:before{
+    content: 'To';
+}
+
+::-webkit-scrollbar
+{
+
+}
+
+::-webkit-scrollbar-track
+{
+
+}
+
+::-webkit-scrollbar-thumb
+{
+
+}
+
+::-webkit-scrollbar              {
+    width: 4px;  /* for vertical scrollbars */
+    height: 4px; /* for horizontal scrollbars */
+}
+::-webkit-scrollbar-button       {
+
+}
+::-webkit-scrollbar-track        {
+    background: rgb(233, 233, 233, 0);
+}
+::-webkit-scrollbar-track-piece  {
+
+}
+::-webkit-scrollbar-thumb        {
+    background: #5682d4;
+}
+::-webkit-scrollbar-corner       {
+
+}
+::-webkit-resizer                {
+
 }

@@ -36,11 +36,28 @@ mailyApp.controller('MaillyListController', function MaillyListController($scope
         }
 
         var clicked = angular.element(document.getElementById("mail_" + mailObject.id));
-        console.log(clicked);
         clicked.addClass('active');
 
         var messageDiv = angular.element(document.getElementById('message'));
-        messageDiv.html(Ln2br(mailObject.message));
+
+        console.log(mailObject);
+
+        $scope.from = mailObject.headers.from;
+        $scope.subject = mailObject.headers.subject;
+        $scope.to = mailObject.headers.to;
+
+        console.log($scope);
+
+        switch (mailObject.headers.docType){
+            case 'text/html':
+                messageDiv.html(mailObject.message);
+                break;
+            default:
+                messageDiv.html(makeLinks(Ln2br(mailObject.message)));
+                break;
+        }
+
+
 
     }
 
@@ -61,6 +78,30 @@ function getMails(scope, http){
             scope.mails = [];
         }
     });
+}
+
+/**
+ *
+ * From : http://stackoverflow.com/questions/37684/how-to-replace-plain-urls-with-links
+ * @param inputText
+ * @returns {XML|string|*}
+ */
+function makeLinks(inputText){
+    var replacedText, replacePattern1, replacePattern2, replacePattern3;
+
+    //URLs starting with http://, https://, or ftp://
+    replacePattern1 = /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
+    replacedText = inputText.replace(replacePattern1, '<a href="$1" target="_blank">$1</a>');
+
+    //URLs starting with "www." (without // before it, or it'd re-link the ones done above).
+    replacePattern2 = /(^|[^\/])(www\.[\S]+(\b|$))/gim;
+    replacedText = replacedText.replace(replacePattern2, '$1<a href="http://$2" target="_blank">$2</a>');
+
+    //Change email addresses to mailto:: links.
+    replacePattern3 = /(([a-zA-Z0-9\-\_\.])+@[a-zA-Z\_]+?(\.[a-zA-Z]{2,6})+)/gim;
+    replacedText = replacedText.replace(replacePattern3, '<a href="mailto:$1">$1</a>');
+
+    return replacedText;
 }
 
 /**
@@ -99,6 +140,11 @@ function getDomains(scope, http){
 
 function Ln2br(input){
     return input.replace(/\n/g, '<br>');
+}
+
+function getScope(){
+    var controllerElement = document.querySelector('body');
+    return angular.element(controllerElement).scope();
 }
 
 /**

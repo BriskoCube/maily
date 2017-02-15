@@ -5,7 +5,7 @@
 var mysql = {
     host: 'localhost',
     user: 'nodeapi',
-    password: 'zLyGDCgOBPUFaBOW',
+    password: '<password>',
     database: 'postfixadmin'
 };
 
@@ -25,21 +25,64 @@ var dovetail = {
 var strings = {
     email: {
         add:{
-            created:'New email correctly created',
-            alreadyExist:'This email address already exist'
+            created:{
+                "str": 'New email correctly created',
+                "code": 10
+            },
+            alreadyExist:{
+                "str": 'This email address already exist',
+                "code": 11
+            }
         },
         'delete':{
-            ok:'Email correctly deleted',
-            error:'Error while deleting email',
+            ok:{
+                "str": 'Email correctly deleted',
+                "code": 20
+            },
+            error:{
+                "str": 'Error while deleting email',
+                "code": 21
+            },
         },
         format:{
-            ok:'',
-            error:'Email name doesn\'t match the correct format'
+            ok:{
+                "str": '',
+                "code": 30
+            },
+            error:{
+                "str": 'Email name doesn\'t match the correct format',
+                "code": 31
+            }
         }
     },
     dovetail:{
         file:{
-            no:'No email found'
+            no:{
+                "str": 'No email found',
+                "code": 40
+            }
+        }
+    }
+}
+
+var codes = {
+    email: {
+        add:{
+            created:10,
+            alreadyExist:11
+        },
+        'delete':{
+            ok:20,
+            error:21,
+        },
+        format:{
+            ok:30,
+            error:31
+        }
+    },
+    dovetail:{
+        file:{
+            no:40
         }
     }
 }
@@ -243,7 +286,7 @@ var utf8 = {
         "be":'¾',
         "bf":'¿'
     },
-        "c3":{
+    "c3":{
         "80":'À',
         "81":'Á',
         "82":'Â',
@@ -312,8 +355,11 @@ var utf8 = {
 }
 
 // Makes variables public
+
 exports.mysql = mysql;
 exports.server = server;
 exports.strings = strings;
+exports.codes = codes;
 exports.dovetail = dovetail;
 exports.emailHeader = emailHeader;
+exports.utf8 = utf8;

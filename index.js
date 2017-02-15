@@ -17,12 +17,24 @@ var db          = require('./modules/db');      // Maily Database
 var email       = require('./modules/email');   // Maily Emails
 var domain      = require('./modules/domain');  // Maily Domains
 var dovetail    = require('./modules/dovetail');// Maily Dovetails
+var http        = require('http');
+var https       = require('https');
+var fs          = require('fs');
+
+var privateKey  = fs.readFileSync('sslcert/privkey.pem');
+var certificate = fs.readFileSync('sslcert/cert.pem');
+var chain = fs.readFileSync('sslcert/chain.pem');
+var credentials = {key: privateKey, cert: certificate, ca:[chain]};
 
 
 var app = null;
+var appHttp = null;
 var port = 0;
 var apiRouter = null;
-var userRouter = null;
+var httpRouter = null;
+
+var emailLocalRegex = /^[a-z]{1}[a-z0-9.-_]{3,}$/i;
+var domainRegex = /^[a-z]{1}[a-z0-9.-_]+[.][a-z]{2,10}$/i;
 
 // Entry point
 init();
@@ -33,18 +45,20 @@ init();
 function init(){
 
     app = express();
+    appHttp = express();
 
     // configure app to use bodyParser()
     app.use(bodyParser.urlencoded({ extended: true }));
     app.use(bodyParser.json());
 
     //set server port
-    port = process.env.PORT || config.server.port
+    port = process.env.PORT || config.server.port;
 
     // Start mySQL connection
     db.Connect();
 
     apiRouter = express.Router();
+    httpRouter = express.Router();
 
     routes();
 }
@@ -66,9 +80,14 @@ function routes(){
         .delete('/email/:domain/:email', DeleteEmailAddress)
         // Email messages
         .get('/email/:domain/:email', GetEmailMessages)
+        .get('/email/:domain/:email/:file', GetEmailMessage)
         .get('/emails/:domain', GetEmails)
         // Domains
         .get('/domains', GetDomains);
+
+    httpRouter.get('*',function(req,res){
+        res.redirect('https://maily.ovh:6580'+req.url)
+    })
 }
 
 
@@ -95,11 +114,19 @@ function PostEmailAddress(req, res){
     var domain = req.body.domain;
     var password = req.body.password;
 
-    //Add email into db
-    email.SetDomain(domain);
-    email.Add(newEmailName, fullName, password, function(status){
-        res.json(status);
-    });
+    if(IsString(fullName) && IsString(password) && IsDomain(domain) && IsLocal(newEmailName)){
+        //Add email into db
+        email.SetDomain(domain);
+        email.Add(newEmailName, fullName, password, function(status){
+            res.json(status);
+        });
+    } else {
+        res.json({
+            "message": "Petit fdp"
+        });
+    }
+
+
 }
 
 /**
@@ -113,11 +140,22 @@ function DeleteEmailAddress(req, res){
     var emailToDelete = req.params.email;
     var domain = req.params.domain;
 
-    //Delete email
-    email.SetDomain(domain);
-    email.Delete(emailToDelete, function(status){
-        res.json(status);
-    });
+    if(IsDomain(domain) && IsLocal(emailToDelete)){
+        //Delete email
+        email.SetDomain(domain);
+        email.Delete(emailToDelete, function(status){
+            res.json(status);
+        });
+
+    } else {
+        res.json({
+            "message": {
+                "str":"Petit fdp",
+                "code": 666
+            }
+        });
+    }
+
 }
 
 /**
@@ -131,9 +169,18 @@ function GetEmailMessages(req, res){
     var emailLocal = req.params.email;
     var domain = req.params.domain;
 
-    dovetail.GetEmails(emailLocal, domain, function(mails){
-        res.json(mails);
-    });
+    if(IsDomain(domain) && IsLocal(emailLocal)) {
+        dovetail.GetEmails(emailLocal, domain, function (mails) {
+            res.json(mails);
+        });
+    } else {
+        res.json({
+            "message": {
+                "str":"Petit fdp",
+                "code": 666
+            }
+        });
+    }
 }
 
 /**
@@ -151,20 +198,71 @@ function GetDomains(req, res){
 function GetEmails(req, res){
     var domain = req.params.domain;
 
-    email.SetDomain(domain);
+    if(IsDomain(domain)) {
+        email.SetDomain(domain);
 
-    email.List(function(mailAddress){
-        res.json(mailAddress);
-    });
+        email.List(function (mailAddress) {
+            res.json(mailAddress);
+        });
+    } else {
+        res.json({
+            "message": {
+                "str":"Petit fdp",
+                "code": 666
+            }
+        });
+    }
+}
+
+function GetEmailMessage(req, res){
+    //Get url parameters
+    var emailLocal = req.params.email;
+    var domain = req.params.domain;
+    var file = req.params.file;
+
+    if(IsDomain(domain) && IsLocal(emailLocal) && IsString(file)) {
+        dovetail.GetEmail(emailLocal, domain, file,function(mails){
+            res.json(mails);
+        });
+    } else {
+        res.json({
+            "message": {
+                "str":"Petit fdp",
+                "code": 666
+            }
+        });
+    }
+}
+
+
+function IsString(string){
+    return typeof string == "string";
+}
+
+function IsDomain(dom){
+
+    return IsString(dom) && domainRegex.test(dom);
+}
+
+function  IsLocal(local){
+    return IsString(dom) && emailLocalRegex.test(local);
 }
 
 //Url prepend
 app.use('/api', apiRouter);
+appHttp.use('', httpRouter);
 
 //app.use('/', userRouter);
 
 app.use('/', express.static(__dirname + '/app/html'));
 app.use('/css', express.static(__dirname + '/app/css'));
 app.use('/js', express.static(__dirname + '/app/js'));
+app.use('/img', express.static(__dirname + '/app/img'));
 
-app.listen(port);
+//app.listen(port);
+
+var httpServer = http.createServer(appHttp);
+var httpsServer = https.createServer(credentials, app);
+
+httpServer.listen(port - 1);
+httpsServer.listen(port);

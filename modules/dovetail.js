@@ -24,14 +24,7 @@ var GetEmails = function(mailLocal, domain, Callback){
 
     var returnJson = {};
 
-        // Create email path string
-        var emailsFolder = Formatter(config.dovetail.mailPaths[0], {
-            domain: domain,
-            user: mailLocal
-        });
-
-        // Make absolute path
-        var emailFolder = config.dovetail.path + emailsFolder;
+        var emailFolder = makeEmailFolder(domain, mailLocal);
 
         // Lis les fichiers du dossier
         fs.readdir(emailFolder, (err, files) => {
@@ -49,7 +42,7 @@ var GetEmails = function(mailLocal, domain, Callback){
 
                         // Avoid hidden files
                         if (file.charAt(0) != '.')
-                            mails.push(MailParser(data, file));
+                            mails.push(MailParser(data, file, 50));
 
                         count++;
 
@@ -71,11 +64,30 @@ var GetEmails = function(mailLocal, domain, Callback){
         });
 };
 
+var GetEmail = function(mailLocal, domain, file, Callback){
+
+    var emailFolder = makeEmailFolder(domain, mailLocal);
+
+    fs.readFile(emailFolder + file, 'utf8', function (err, data) {
+
+        var mail  =MailParser(data, file);
+
+
+            Callback({
+                status: true,
+                data: mail
+            });
+
+    });
+}
+
 /**
  * Parse text email to json
  * @param mail The email's text
  */
-var MailParser = function(mail, file){
+var MailParser = function(mail, file, maxLength){
+
+
 
     // Regex used to split header key and value
     var headerRegex = /(([a-zA-Z-]+): (.+)((\n\t(.+))*))/g;
@@ -86,12 +98,12 @@ var MailParser = function(mail, file){
     var header = mail.substr(0,mail.indexOf("\n\n"));
     var temporyMessage = mail.substr(mail.indexOf("\n\n")+2); //may content mime informations
 
-
     var timeStamp = file.match(timeStampRegex);
 
     // Output json skeleton
-    var matches, output = {
+    var output = {
         id: parseInt(timeStamp[0]),
+        file: file,
         headers:{},
         message: temporyMessage
     };
@@ -112,6 +124,12 @@ var MailParser = function(mail, file){
 
     var message = Multipart(output.headers, temporyMessage);
 
+    message = Utf8Decoder(message);
+
+    if(typeof maxLength != 'undefined' && message.length > maxLength){
+        message = message.split(0, maxLength);
+    }
+
     output.message = message;
 
     return output;
@@ -131,6 +149,41 @@ var Boundaries = function(headers){
     return boundary;
 };
 
+var Utf8Decoder = function(string){
+    var utf8Regex = /=(((C2|C3)=([0-9a-f]{2}))|([0-9a-f]{2}))/gi;
+
+    var matches;
+
+    string = string.replace(utf8Regex, function (match, p1, p2, p3, p4, p5) {
+        /*console.log("p1: " + p1);
+        console.log("p2: " + p2);
+        console.log("p3: " + p3);
+        console.log("p4: " + p4);
+        console.log("p5: " + p5);*/
+
+        if(typeof p3 != 'undefined' && typeof p4 != 'undefined'){
+            return (config.utf8[p3.toLowerCase()][p4.toLowerCase()]);
+        } else {
+            return (config.utf8[p5.toLowerCase()]);
+        }
+    });
+
+    string = string.replace(/=\n/gi, '');
+
+
+    /*while(matches = utf8Regex.exec(string)){
+
+        if(typeof matches[3] != 'undefined' && typeof matches[4] != 'undefined'){
+            console.log(config.utf8[matches[3].toLowerCase()][matches[4].toLowerCase()]);
+        } else {
+            console.log(config.utf8[matches[5].toLowerCase()]);
+        }
+    }*/
+
+    return string;
+
+}
+
 var Multipart = function(headers, message){
     var boundary = Boundaries(headers);
 
@@ -143,9 +196,13 @@ var Multipart = function(headers, message){
         var splittedMessage = message.split(boundary)[2];
 
 
+        var docType = splittedMessage.match(regexDocType);
 
 
-        headers.docType = splittedMessage.match(regexDocType)[1];
+
+        if(docType && docType.length > 1){
+            headers.docType = docType[1];
+        }
 
         return splittedMessage.replace(headerRegex, '').replace(/[-]+$/, '');
     }
@@ -185,6 +242,17 @@ var Formatter = function(string, values){
     return string;
 };
 
+var makeEmailFolder = function(domain, mailLocal){
+    // Create email path string
+    var emailsFolder = Formatter(config.dovetail.mailPaths[0], {
+        domain: domain,
+        user: mailLocal
+    });
+
+    // Make absolute path
+    return config.dovetail.path + emailsFolder;
+}
+
 /**
  * Remove mime encode
  * @param string
@@ -208,3 +276,4 @@ var mimeCleaner = function(string){
 // Makes variables public
 exports.Formatter = Formatter;
 exports.GetEmails = GetEmails;
+exports.GetEmail = GetEmail;

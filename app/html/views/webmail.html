@@ -1,0 +1,39 @@
+<!--
+<select ng-change="emailAddressChanged()" ng-model="selectedLocalPart">
+    <option ng-repeat="mailAddress in mailAddresses | orderBy:'created':true">{{mailAddress.local_part}}</option>
+</select>
+
+<select ng-change="domainChanged()" ng-model="selectedDomain">
+    <option ng-repeat="domain in domains | orderBy:'created':true">{{domain.domain | trim}}</option>
+</select>
+-->
+
+<div class="webmail">
+    <div class="desc mycss">
+        <div ng-repeat="mail in mails | orderBy:'id':true" ng-click="showDetail(mail)" id="mail_{{mail.id}}" class="mail">
+            <h2 class="ellips">
+                {{mail.headers.from}}
+            </h2>
+            <h3 class="ellips">
+                {{mail.headers.subject}}
+            </h3>
+            <p class="content-preview ellips" ng-bind-html="mail.message | strip | oneLine">
+
+            </p>
+        </div>
+    </div>
+
+    <div class="content">
+        <div id="header" class="mycss">
+            <div>
+                <div id="from">{{from}}</div>
+                <div id="subject">{{subject}}</div>
+                <div id="to">{{to}}</div>
+            </div>
+
+        </div>
+        <div id="message">
+
+        </div>
+    </div>
+</div>

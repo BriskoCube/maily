@@ -1,0 +1,33 @@
+<div class="home">
+    <div id="background">
+    </div>
+
+    <header>
+        <img src="/img/maily-logo.svg" alt="">
+    </header>
+
+    <div class="popup" ng-class="[popupStyle]" ng-show="popupShow">
+        {{popupMessage}}
+        <a  ng-click="buttonFunction" class="btn blue" ng-show="buttonShow">{{buttonText}}</a>
+    </div>
+
+    <section>
+        <div class="centred">
+            <div>
+                <div>
+                    <input type="text" ng-model="localPart" ng-class="[mailInvalid]" placeholder="toto"><span>@{{domain}}</span>
+                </div>
+
+                <div class="submit-button"><!--href="#none"-->
+                    <a  ng-click="submit()" class="btn blue">Let's start</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>
+            Julien Quartier ETML &copy; {{year}}
+        </p>
+    </footer>
+</div>

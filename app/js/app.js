@@ -12,9 +12,9 @@ var apiUrl = "https://maily.ovh:6580/api/";
 var domain = "maily.ovh";
 var local = "";
 
-var emailLocalRegex = /^[a-z]{1}[a-z0-9.-_]{3,}$/i;
+var emailLocalRegex = /^[a-z]{1}[a-z0-9._-]{1,}[a-z0-9]{1}$/i;
 
-var emailRegex = /^[a-z]{1}[a-z0-9.-_]{3,}@[a-z]{1}[a-z0-9.-_]+[.][a-z]{2,10}$/i
+var emailRegex = /^[a-z]{1}[a-z0-9._-]{1,}[a-z0-9]{1}@[a-z]{1}[a-z0-9.-_]+[.][a-z]{2,10}$/i
 
 /**
  * Angular on load config

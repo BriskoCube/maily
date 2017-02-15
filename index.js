@@ -33,7 +33,7 @@ var port = 0;
 var apiRouter = null;
 var httpRouter = null;
 
-var emailLocalRegex = /^[a-z]{1}[a-z0-9.-_]{3,}$/i;
+var emailLocalRegex = /^[a-z]{1}[a-z0-9._-]{1,}[a-z0-9]{1}$/i;
 var domainRegex = /^[a-z]{1}[a-z0-9.-_]+[.][a-z]{2,10}$/i;
 
 // Entry point

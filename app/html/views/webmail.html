@@ -9,31 +9,48 @@
 -->
 
 <div class="webmail">
-    <div class="desc mycss">
-        <div ng-repeat="mail in mails | orderBy:'id':true" ng-click="showDetail(mail)" id="mail_{{mail.id}}" class="mail" ng-class="{active: activeId == mail.id}">
-            <h2 class="ellips">
-                {{mail.headers.from}}
-            </h2>
-            <h3 class="ellips">
-                {{mail.headers.subject}}
-            </h3>
-            <p class="content-preview ellips" ng-bind-html="mail.message | strip | oneLine">
 
+    <header>
+        <a href="/"><img src="/img/maily-logo.svg" alt=""></a>
+        <div>
+            <p>
+                {{email}}
             </p>
         </div>
-    </div>
+    </header>
 
-    <div class="content">
-        <div id="header" class="mycss">
-            <div>
-                <div id="from">{{from}}</div>
-                <div id="subject">{{subject}}</div>
-                <div id="to">{{to}}</div>
+    <section>
+        <div class="desc mycss">
+            <div id="list-detail">
+                <span>Inbox</span>
+                <span>[{{mails.length}}]</span>
             </div>
+            <div ng-repeat="mail in mails | orderBy:'id':true" ng-click="showDetail(mail)" id="mail_{{mail.id}}" class="mail" ng-class="{active: activeId == mail.id}">
+                <h2 class="ellips">
+                    {{mail.headers.from | noEmpty: '[No Sender]'}}
+                </h2>
+                <h3 class="ellips">
+                    {{mail.headers.subject | noEmpty: '[No Subject]'}}
+                </h3>
+                <p class="content-preview ellips" ng-bind-html="mail.message | strip | oneLine">
 
+                </p>
+            </div>
         </div>
-        <div id="message">
 
+        <div class="content">
+            <div id="header" class="mycss">
+                <div>
+                    <h1>{{subject | noEmpty: '[No Subject]'}}</h1>
+                    <div id="date">{{(timestamp * 1000) | date}}</div>
+                    <div id="from">{{from | noEmpty: '[No Sender]'}}</div>
+                    <div id="to">{{to}}</div>
+                </div>
+
+            </div>
+            <div id="message">
+
+            </div>
         </div>
-    </div>
+    </section>
 </div>

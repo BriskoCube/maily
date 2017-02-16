@@ -30,6 +30,7 @@ mailyApp.config(function($routeProvider) {
             templateUrl : "views/webmail.html",
             controller: "MailyListController"
         });
+
 });
 
 /**
@@ -44,6 +45,8 @@ mailyApp.controller('MailyListController', function MailyListController($scope, 
     $scope.toKey = "To";
 
     if(emailRegex.test(email)) {
+
+        $scope.email = email;
 
         //split domain and local
         var emailParts = email.split('@');
@@ -99,8 +102,9 @@ mailyApp.controller('MailyListController', function MailyListController($scope, 
 
             // Update message details
             $scope.from = mailObject.headers.from;
-            $scope.subject = mailObject.headers.subject;
             $scope.to = mailObject.headers.to;
+            $scope.timestamp = mailObject.id;
+            $scope.subject = mailObject.headers.subject
 
             $http.get(apiUrl + `email/${domain}/${local}/${mailObject.file}`).then(function(response) {
                 if(response.data.status == true){
@@ -299,7 +303,7 @@ function getMailAddress(scope, http){
  */
 function getDomains(scope, http){
     http.get(apiUrl + 'domains').then(function(response) {
-        if(response.data.status == true){
+        if(response.data.status == false){
             scope.domains = response.data.data;
         } else {
             scope.domains = [];
@@ -399,3 +403,17 @@ mailyApp.filter('strip', function() {
         return tmp.textContent || tmp.innerText || "";
     };
 });
+
+/**
+ * Remove html
+ */
+mailyApp.filter('noEmpty', function() {
+    return function(value, placeholder) {
+        if(typeof value != "string"){
+            return placeholder;
+        } else {
+            return value;
+        }
+    };
+});
+

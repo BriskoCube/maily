@@ -4,3 +4,7 @@
 *.swp
 
 \.idea/
+
+modules/config\.js
+
+node_modules

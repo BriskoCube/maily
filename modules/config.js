@@ -5,6 +5,7 @@
 var mysql = {
     host: 'localhost',
     user: 'nodeapi',
+    password: 'zLyGDCgOBPUFaBOW',
     database: 'postfixadmin'
 };
 

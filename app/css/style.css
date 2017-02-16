@@ -33,8 +33,41 @@ body *{
 
 .webmail{
     display: flex;
+    flex-direction: column;
     max-height: 100vh;
 }
+
+.webmail header{
+    height: 60px;
+    width: 100vw;
+    display: flex;
+    background-color: #eee;
+}
+
+.webmail header img{
+    height: calc(100% - 20px);
+    margin: 10px;
+}
+
+.webmail header div{
+    flex: 1;
+}
+
+.webmail header div > p{
+    text-align: right;
+    margin: 0 20px;
+    line-height: 54px;
+    font-size: 21px;
+    height: 100%;
+}
+
+.webmail section{
+    height:calc(100vh - 60px);
+    display: flex;
+    flex-direction: row;
+}
+
+
 
 .webmail .desc.mycss{
     background-color: #fbfbfb;
@@ -49,10 +82,21 @@ body *{
 
 .webmail .desc.mycss > div{
     padding: 11px 13px;
+    border-bottom: 1px solid #dadada;
 
 }
 
-.webmail .desc.mycss > div:hover{
+
+.webmail .desc.mycss #list-detail{
+    color: #8c8c8c;
+}
+
+.webmail .desc.mycss #list-detail span:last-child{
+    float: right;
+}
+
+
+.webmail .desc.mycss > div:hover:not(#list-detail){
     background-color: #D3D8FF;
     cursor: pointer;
 }
@@ -79,19 +123,37 @@ body *{
     flex-direction: column;
 }*/
 
+
+
 #header{
-    height: 100px;
-    background-color: #dce6ef;
+    height: 140px;
+    /*background-color: #dce6ef;
     background-color: #dce6ef;
     display: flex;
-    align-items: center;
+    align-items: center;*/
+}
+
+#header:after{
+    content: ' ';
+    height: 2px;
+    width: 96%;
+    background-color: #e8e8e8;
+    display: block;
+    top: 10px;
+    margin-left: 2%;
+    margin-top: 25px;
+}
+
+#header h1{
+    margin: 0px 0px 5px 0px;
 }
 
 #message{
     padding: 30px;
     flex: 1;
     overflow: scroll;
-    max-height: calc(100vh - 160px);
+    /*max-height: calc(100vh - 200px);*/
+    height: 100%;
 }
 
 .mycss .ellips{
@@ -105,7 +167,7 @@ body *{
     padding: 0 30px;
 }
 
-#from, #subject, #to {
+#from, #date, #to {
     font-size: 0.8em;
     padding-bottom: 10px;
 }
@@ -113,8 +175,8 @@ body *{
     padding-bottom: 0px;
 }
 
-#from:before, #subject:before, #to:before{
-    width: 85px;
+#from:before, #date:before, #to:before{
+    width: 49px;
     display: inline-block;
     text-align: right;
     padding-right: 18px;
@@ -125,8 +187,8 @@ body *{
     content: 'From';
 }
 
-#subject:before{
-    content: 'Subject';
+#date:before{
+    content: 'Date';
 }
 
 #to:before{
@@ -150,6 +212,7 @@ body *{
     top:0px;
     height: 50px;
     padding: 30px;
+
 }
 
 .home header img{

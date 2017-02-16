@@ -13,8 +13,9 @@ var domain = "maily.ovh";
 var local = "";
 
 var emailLocalRegex = /^[a-z]{1}[a-z0-9._-]{1,}[a-z0-9]{1}$/i;
+var emailRegex = /^[a-z]{1}[a-z0-9._-]{1,}[a-z0-9]{1}@[a-z]{1}[a-z0-9.-_]+[.][a-z]{2,10}$/i;
 
-var emailRegex = /^[a-z]{1}[a-z0-9._-]{1,}[a-z0-9]{1}@[a-z]{1}[a-z0-9.-_]+[.][a-z]{2,10}$/i
+var mailReloader;
 
 /**
  * Angular on load config
@@ -34,7 +35,7 @@ mailyApp.config(function($routeProvider) {
 /**
  * MaillyListController functions
  */
-mailyApp.controller('MailyListController', function MailyListController($scope, $http, $routeParams) {
+mailyApp.controller('MailyListController', function MailyListController($scope, $http, $routeParams, $interval) {
 
     var email = $routeParams.email;
 
@@ -42,11 +43,10 @@ mailyApp.controller('MailyListController', function MailyListController($scope, 
     $scope.fromKey = "From";
     $scope.toKey = "To";
 
-
     if(emailRegex.test(email)) {
 
+        //split domain and local
         var emailParts = email.split('@');
-
         if(emailParts.length > 1){
             local = emailParts[0];
             domain = emailParts[1];
@@ -69,6 +69,17 @@ mailyApp.controller('MailyListController', function MailyListController($scope, 
         $scope.selectedLocalPart = local;
         getMails($scope, $http);
 
+        if(mailReloader != null){
+            $interval.cancel(mailReloader);
+
+            mailReloader = null;
+        }
+
+
+        mailReloader = $interval(function() {
+            getMails();
+        }, 10000);
+
         // Show email details. Message, from, to,...
         $scope.showDetail = function (mailObject) {
 
@@ -79,9 +90,11 @@ mailyApp.controller('MailyListController', function MailyListController($scope, 
                 mail.removeClass('active');
             }
 
+            $scope.activeId = mailObject.id;
+
             // Add "active" class to the selected element
-            var clicked = angular.element(document.getElementById("mail_" + mailObject.id));
-            clicked.addClass('active');
+            /*var clicked = angular.element(document.getElementById("mail_" + mailObject.id));
+            clicked.addClass('active');*/
 
 
             // Update message details
@@ -105,14 +118,8 @@ mailyApp.controller('MailyListController', function MailyListController($scope, 
                             messageDiv.html(makeLinks(Ln2br(data.message)));
                             break;
                     }
-
-
                 } else {
                 }
-
-
-
-
             });
         };
     }
@@ -121,6 +128,30 @@ mailyApp.controller('MailyListController', function MailyListController($scope, 
     $scope.mails = [
     ];
 
+
+
+    /**
+     * Get emails form api
+     */
+    function getMails(){
+        $http.get(apiUrl + 'email/' + $scope.selectedDomain + '/' + $scope.selectedLocalPart).then(function(response) {
+            if(response.data.status == true){
+
+                var loadedMails = response.data.data;
+
+                if( $scope.mails.length < loadedMails.length){
+                    if($scope.mails.length != 0){
+                        var dif = loadedMails.length - $scope.mails.length
+
+                        ShowNotification(dif + " new mails", "", "/img/maily-logo-m.png");
+                    }
+                    $scope.mails = loadedMails;
+                }
+            } else {
+                $scope.mails = [];
+            }
+        });
+    }
 
 });
 
@@ -136,17 +167,26 @@ mailyApp.controller('MailyHomeController', function MailyHomeController($scope, 
 
     $scope.domain = domain;
 
+    /**
+     * Validate and send new email
+     */
     $scope.submit = function(){
         var localPart = $scope.localPart;
 
+        //Email format match the regex
         if(emailLocalRegex.test(localPart)){
             addMail(localPart, $scope, $http);
             $scope.mailInvalid = "";
         } else {
+            // Set input red
             $scope.mailInvalid = "error";
         }
     };
 
+    /**
+     * Send new or existing email address to the server
+     * @param localpart
+     */
     function addMail(localpart){
 
         var data = {
@@ -156,37 +196,50 @@ mailyApp.controller('MailyHomeController', function MailyHomeController($scope, 
             "password": "trash_user"
         };
 
+        // Send email url
         $http.post(apiUrl + 'email', data).then(function(response) {
             switch (response.data.message.code){
-                case 10:
+                case 10: //Email created
                     popupShow(response.data.message.str, 1);
                     break;
-                case 11:
+                case 11: //Email exist
                     popupShow(response.data.message.str, 2);
+                    break;
+                default:
                     break;
             }
 
-            local = localpart;
+            // Redirect if email has been created or aleady exist
+            if(IsInArray(response.data.message.code, [10, 11])){
+                local = localpart;
 
-            $location.path(`/webmail/${localpart}@${domain}`);
-
-
+                //redirect to webmail
+                $location.path(`/webmail/${localpart}@${domain}`)
+            }
         });
     }
 
+    /**
+     * Display info popup
+     * @param message Text inside the popup
+     * @param type Popup design. 1: valid, 2: error
+     * @param buttonText Texte for the buttton
+     * @param buttonFunction Function called on button click
+     */
     function popupShow(message, type, buttonText, buttonFunction){
 
-        $scope.popupShow = true;
-        $scope.popupMessage = message;
+        $scope.popupShow = true; //show popup
+        $scope.popupMessage = message; //set message
+        $scope.buttonShow = false; //Hide button. by default
 
-        $scope.buttonShow = false;
-
+        //if button has text show button
         if(typeof buttonText != 'undefined'){
             $scope.buttonShow = true;
             $scope.buttonText = buttonText;
             $scope.buttonFunction = buttonFunction;
         }
 
+        // Set popup style
         switch (type){
             case 1:
                 $scope.popupStyle = "ok";
@@ -197,23 +250,11 @@ mailyApp.controller('MailyHomeController', function MailyHomeController($scope, 
         }
     }
 });
-/**
- * Get emails form api
- * @param scope
- * @param http
- */
-function getMails(scope, http){
-    http.get(apiUrl + 'email/' + scope.selectedDomain + '/' + scope.selectedLocalPart).then(function(response) {
-        if(response.data.status == true){
-            scope.mails = response.data.data;
-        } else {
-            scope.mails = [];
-        }
-    });
-}
+
+
 
 /**
- *
+ * Make link clickable inside string
  * From : http://stackoverflow.com/questions/37684/how-to-replace-plain-urls-with-links
  * @param inputText
  * @returns {XML|string|*}
@@ -279,6 +320,28 @@ function Ln2br(input){
     return input.replace(/\n/g, '<br>');
 }
 
+
+function IsInArray(value, array){
+    if(array.indexOf(value) != -1)
+        return true;
+
+    return false;
+}
+
+function ShowNotification(title, message, icon){
+
+    if(! ('Notification' in window) ){
+        console.log('Web Notification not supported');
+        return;
+    }
+
+    Notification.requestPermission(function(permission){
+        var notification = new Notification(title,{body:message,icon:icon, dir:'auto'});
+        setTimeout(function(){
+            notification.close();
+        },3000);
+    });
+}
 
 /**
  * No more used

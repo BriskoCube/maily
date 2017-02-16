@@ -94,6 +94,9 @@ var MailParser = function(mail, file, maxLength){
 
     var timeStampRegex = /^[0-9]+/;
 
+    if(typeof mail != 'string')
+        mail = "";
+
     // Split header and message
     var header = mail.substr(0,mail.indexOf("\n\n"));
     var temporyMessage = mail.substr(mail.indexOf("\n\n")+2); //may content mime informations

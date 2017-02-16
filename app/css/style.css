@@ -91,6 +91,7 @@ body *{
     padding: 30px;
     flex: 1;
     overflow: scroll;
+    max-height: calc(100vh - 160px);
 }
 
 .mycss .ellips{

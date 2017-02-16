@@ -245,7 +245,7 @@ function IsDomain(dom){
 }
 
 function  IsLocal(local){
-    return IsString(dom) && emailLocalRegex.test(local);
+    return IsString(local) && emailLocalRegex.test(local);
 }
 
 //Url prepend

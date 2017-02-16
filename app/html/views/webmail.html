@@ -10,7 +10,7 @@
 
 <div class="webmail">
     <div class="desc mycss">
-        <div ng-repeat="mail in mails | orderBy:'id':true" ng-click="showDetail(mail)" id="mail_{{mail.id}}" class="mail">
+        <div ng-repeat="mail in mails | orderBy:'id':true" ng-click="showDetail(mail)" id="mail_{{mail.id}}" class="mail" ng-class="{active: activeId == mail.id}">
             <h2 class="ellips">
                 {{mail.headers.from}}
             </h2>

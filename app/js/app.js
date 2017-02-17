@@ -44,6 +44,10 @@ mailyApp.controller('MailyListController', function MailyListController($scope, 
     $scope.fromKey = "From";
     $scope.toKey = "To";
 
+    // Store all mail objects
+    $scope.mails = [
+    ];
+
     if(emailRegex.test(email)) {
 
         $scope.email = email;
@@ -128,12 +132,6 @@ mailyApp.controller('MailyListController', function MailyListController($scope, 
         };
     }
 
-    // Store all mail objects
-    $scope.mails = [
-    ];
-
-
-
     /**
      * Get emails form api
      */
@@ -180,10 +178,10 @@ mailyApp.controller('MailyHomeController', function MailyHomeController($scope, 
         //Email format match the regex
         if(emailLocalRegex.test(localPart)){
             addMail(localPart, $scope, $http);
-            $scope.mailInvalid = "";
+            toggleMailError(false);
         } else {
             // Set input red
-            $scope.mailInvalid = "error";
+            toggleMailError(true);
         }
     };
 
@@ -251,6 +249,24 @@ mailyApp.controller('MailyHomeController', function MailyHomeController($scope, 
             case 2:
                 $scope.popupStyle = "error";
                 break;
+        }
+    }
+
+    function toggleMailError(hasError){
+
+        if(typeof hasError == 'boolean'){
+            console.log("dfs");
+            if(hasError){
+                $scope.mailInvalid = "error";
+            } else {
+                $scope.mailInvalid = ""
+            }
+        } else {
+            if($scope.mailInvalid != ""){
+                $scope.mailInvalid = "";
+            } else {
+                $scope.mailInvalid = "error";
+            }
         }
     }
 });

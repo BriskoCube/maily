@@ -9,8 +9,6 @@ var fs = require('fs');
 var config = require('./config');
 var mimelib     = require("mimelib");
 
-
-
 var formatterFindKeyRegex = /#{([a-z]{1,20})}/g;
 
 /**
@@ -56,6 +54,7 @@ var GetEmails = function(mailLocal, domain, Callback){
                     });
                 });
             } else {
+                //error
                 returnJson.status = false;
                 returnJson.message = config.strings.dovetail.file.no;
 
@@ -64,8 +63,17 @@ var GetEmails = function(mailLocal, domain, Callback){
         });
 };
 
+/**
+ *
+ * @param mailLocal
+ * @param domain
+ * @param file
+ * @param Callback
+ * @constructor
+ */
 var GetEmail = function(mailLocal, domain, file, Callback){
 
+    //return email messages folder from domain and maillocal
     var emailFolder = makeEmailFolder(domain, mailLocal);
 
     fs.readFile(emailFolder + file, 'utf8', function (err, data) {
@@ -79,6 +87,24 @@ var GetEmail = function(mailLocal, domain, file, Callback){
             });
 
     });
+};
+
+var CountEmail = function(mailLocal, domain, Callback){
+    var emailFolder = makeEmailFolder(domain, mailLocal);
+
+    var count = 0;
+
+    // Lis les fichiers du dossier
+    fs.readdir(emailFolder, (err, files) => {
+
+        if(typeof  files != "undefined")
+           count = files.length;
+
+        Callback(count);
+
+    });
+
+
 }
 
 /**
@@ -86,8 +112,6 @@ var GetEmail = function(mailLocal, domain, file, Callback){
  * @param mail The email's text
  */
 var MailParser = function(mail, file, maxLength){
-
-
 
     // Regex used to split header key and value
     var headerRegex = /(([a-zA-Z-]+): (.+)((\n\t(.+))*))/g;
@@ -158,11 +182,6 @@ var Utf8Decoder = function(string){
     var matches;
 
     string = string.replace(utf8Regex, function (match, p1, p2, p3, p4, p5) {
-        /*console.log("p1: " + p1);
-        console.log("p2: " + p2);
-        console.log("p3: " + p3);
-        console.log("p4: " + p4);
-        console.log("p5: " + p5);*/
 
         if(typeof p3 != 'undefined' && typeof p4 != 'undefined'){
             return (config.utf8[p3.toLowerCase()][p4.toLowerCase()]);
@@ -245,6 +264,13 @@ var Formatter = function(string, values){
     return string;
 };
 
+//Delete email folder
+var DeleteFolder = function(domain, mailLocal){
+    var path = makeEmailFolder(domain, mailLocal);
+
+    fs.rmdirSync(path);
+}
+
 var makeEmailFolder = function(domain, mailLocal){
     // Create email path string
     var emailsFolder = Formatter(config.dovetail.mailPaths[0], {
@@ -280,3 +306,5 @@ var mimeCleaner = function(string){
 exports.Formatter = Formatter;
 exports.GetEmails = GetEmails;
 exports.GetEmail = GetEmail;
+exports.CountEmail = CountEmail;
+exports.DeleteFolder = DeleteFolder;

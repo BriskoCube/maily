@@ -180,7 +180,7 @@ var SetDomain = function(newDomain){
  * @constructor
  */
 var List = function(Callback){
-    db.Select(`SELECT * FROM mailbox WHERE domain = '${domain}'`, function(result){
+    db.Select(`SELECT username,name,maildir,quota,local_part,domain,created,modified,active  FROM mailbox WHERE domain = '${domain}'`, function(result){
 
         Callback({
             status: true,

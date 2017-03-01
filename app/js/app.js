@@ -5,15 +5,18 @@
  * Description  :
  */
 
+//Declare angular app. Include ngRoute for routing and ngSanitize for cleaning HTML
 var mailyApp = angular.module('Maily', ["ngRoute", 'ngSanitize']);
 
+//Web api path. Needs to be on the same domain
 var apiUrl = "https://maily.ovh:6580/api/";
 
+//Emails address' domain
 var domain = "maily.ovh";
 var local = "";
 
-var emailLocalRegex = /^[a-z]{1}[a-z0-9._-]{1,}[a-z0-9]{1}$/i;
-var emailRegex = /^[a-z]{1}[a-z0-9._-]{1,}[a-z0-9]{1}@[a-z]{1}[a-z0-9.-_]+[.][a-z]{2,10}$/i;
+var emailLocalRegex = /^[a-z][a-z0-9._-]+[a-z0-9]$/i;
+var emailRegex = /^[a-z][a-z0-9._-]+[a-z0-9]@[a-z][a-z0-9.-_]+[.][a-z]{2,10}$/i;
 
 var mailReloader;
 
@@ -22,10 +25,12 @@ var mailReloader;
  */
 mailyApp.config(function($routeProvider) {
     $routeProvider
+        //main route. Display home page
         .when("/", {
             templateUrl : "views/home.html",
             controller: "MailyHomeController"
         })
+        //Display webmail. Accordingly to the email in parameter(:email).
         .when("/webmail/:email", {
             templateUrl : "views/webmail.html",
             controller: "MailyListController"
@@ -33,13 +38,12 @@ mailyApp.config(function($routeProvider) {
 
 });
 
-/**
- * MaillyListController functions
- */
+//Configure maily controller
 mailyApp.controller('MailyListController', function MailyListController($scope, $http, $routeParams, $interval) {
 
     var email = $routeParams.email;
 
+    //Define used mime header key
     $scope.subjectKey = "Subject";
     $scope.fromKey = "From";
     $scope.toKey = "To";
@@ -48,8 +52,10 @@ mailyApp.controller('MailyListController', function MailyListController($scope, 
     $scope.mails = [
     ];
 
+    // If email match regex
     if(emailRegex.test(email)) {
 
+        // Change displayed email
         $scope.email = email;
 
         //split domain and local
@@ -74,15 +80,17 @@ mailyApp.controller('MailyListController', function MailyListController($scope, 
 
         $scope.selectedDomain = domain;
         $scope.selectedLocalPart = local;
-        getMails($scope, $http);
 
+        //Get emails and display them
+        getMails();
+
+        //Kill mailReloader. Before recalling
         if(mailReloader != null){
             $interval.cancel(mailReloader);
-
             mailReloader = null;
         }
 
-
+        // Call the function every 10 sec
         mailReloader = $interval(function() {
             getMails();
         }, 10000);
@@ -97,12 +105,8 @@ mailyApp.controller('MailyListController', function MailyListController($scope, 
                 mail.removeClass('active');
             }
 
+            // Set active email id.
             $scope.activeId = mailObject.id;
-
-            // Add "active" class to the selected element
-            /*var clicked = angular.element(document.getElementById("mail_" + mailObject.id));
-            clicked.addClass('active');*/
-
 
             // Update message details
             $scope.from = mailObject.headers.from;
@@ -110,6 +114,7 @@ mailyApp.controller('MailyListController', function MailyListController($scope, 
             $scope.timestamp = mailObject.id;
             $scope.subject = mailObject.headers.subject
 
+            // 
             $http.get(apiUrl + `email/${domain}/${local}/${mailObject.file}`).then(function(response) {
                 if(response.data.status == true){
                     var data = response.data.data;

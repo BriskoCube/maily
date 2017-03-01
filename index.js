@@ -2,7 +2,7 @@
  * ETML
  * Auteur       : Julien Quartier
  * DATE         : 02.02.2017
- * Description  : Main file. He can be called "the server".
+ * Description  : Main file. It can be called "the server".
  *                - Manage all the api.
  *                - Handle routes.
  *                - Init database
@@ -22,29 +22,30 @@ var https       = require('https');
 var fs          = require('fs');
 var schedule    = require('node-schedule');
 
+//SSl configuration
 var privateKey  = fs.readFileSync('sslcert/privkey.pem');
 var certificate = fs.readFileSync('sslcert/cert.pem');
 var chain = fs.readFileSync('sslcert/chain.pem');
 var credentials = {key: privateKey, cert: certificate, ca:[chain]};
 
-
+//App objects
 var app = null;
 var appHttp = null;
-var port = 0;
 var apiRouter = null;
 var httpRouter = null;
 
-var emailLocalRegex = /^[a-z]{1}[a-z0-9._-]{1,}[a-z0-9]{1}$/i;
-var domainRegex = /^[a-z]{1}[a-z0-9.-_]+[.][a-z]{2,10}$/i;
+var emailLocalRegex = /^[a-z][a-z0-9._-]+[a-z0-9]$/i;
+var domainRegex = /^[a-z][a-z0-9.-_]+[.][a-z]{2,10}$/i;
 
 // Entry point
 init();
 
 /**
- *
+ * Initialize the Nodejs app
  */
 function init(){
 
+    //Init express router. app for https and appHttp for the redirect to https
     app = express();
     appHttp = express();
 
@@ -59,10 +60,12 @@ function init(){
     httpRouter = express.Router();
 
     Routes();
-
     Crons();
 }
 
+/**
+ * Create crons. Call a function every 5 minutes, every hours, or what you want. Feel free.
+ */
 function Crons(){
 
     // Execute cron every 5 minutes
@@ -95,8 +98,6 @@ function Crons(){
                                 email.Delete(actData.local_part, function(){
                                     //TODO implement delete
                                 });
-
-
                             }
                         });
                     })(data);

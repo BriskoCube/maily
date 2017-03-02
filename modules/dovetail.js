@@ -50,7 +50,6 @@ var GetEmails = function(mailLocal, domain, Callback){
                                 status: true,
                                 data: mails
                             });
-
                     });
                 });
             } else {
@@ -103,8 +102,6 @@ var CountEmail = function(mailLocal, domain, Callback){
         Callback(count);
 
     });
-
-
 }
 
 /**
@@ -179,8 +176,6 @@ var Boundaries = function(headers){
 var Utf8Decoder = function(string){
     var utf8Regex = /=(((C2|C3)=([0-9a-f]{2}))|([0-9a-f]{2}))/gi;
 
-    var matches;
-
     string = string.replace(utf8Regex, function (match, p1, p2, p3, p4, p5) {
 
         if(typeof p3 != 'undefined' && typeof p4 != 'undefined'){
@@ -192,20 +187,16 @@ var Utf8Decoder = function(string){
 
     string = string.replace(/=\n/gi, '');
 
-
-    /*while(matches = utf8Regex.exec(string)){
-
-        if(typeof matches[3] != 'undefined' && typeof matches[4] != 'undefined'){
-            console.log(config.utf8[matches[3].toLowerCase()][matches[4].toLowerCase()]);
-        } else {
-            console.log(config.utf8[matches[5].toLowerCase()]);
-        }
-    }*/
-
     return string;
-
 }
 
+/**
+ * Split message between each arts
+ * @param headers
+ * @param message
+ * @returns {*}
+ * @constructor
+ */
 var Multipart = function(headers, message){
     var boundary = Boundaries(headers);
 
@@ -215,12 +206,11 @@ var Multipart = function(headers, message){
 
         var regexDocType = /.{0,}:.{0,}(text\/(.+))[;]/;
 
-        var splittedMessage = message.split(boundary)[2];
+        var splittedMessages = message.split(boundary);
 
+        var splittedMessage = splittedMessages[2];
 
         var docType = splittedMessage.match(regexDocType);
-
-
 
         if(docType && docType.length > 1){
             headers.docType = docType[1];

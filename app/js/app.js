@@ -114,7 +114,7 @@ mailyApp.controller('MailyListController', function MailyListController($scope, 
             $scope.timestamp = mailObject.id;
             $scope.subject = mailObject.headers.subject
 
-            // 
+            // Load mail body from server
             $http.get(apiUrl + `email/${domain}/${local}/${mailObject.file}`).then(function(response) {
                 if(response.data.status == true){
                     var data = response.data.data;
@@ -162,7 +162,11 @@ mailyApp.controller('MailyListController', function MailyListController($scope, 
 
 });
 
-
+/**
+ * Home page controller.
+ * Used to declare MailyHomeController variables and functions.
+ * $scope : access to the
+ */
 mailyApp.controller('MailyHomeController', function MailyHomeController($scope, $http, $location) {
 
     $scope.popupShow = false;
@@ -183,10 +187,6 @@ mailyApp.controller('MailyHomeController', function MailyHomeController($scope, 
         //Email format match the regex
         if(emailLocalRegex.test(localPart)){
             addMail(localPart, $scope, $http);
-            toggleMailError(false);
-        } else {
-            // Set input red
-            toggleMailError(true);
         }
     };
 
@@ -256,24 +256,6 @@ mailyApp.controller('MailyHomeController', function MailyHomeController($scope, 
                 break;
         }
     }
-
-    function toggleMailError(hasError){
-
-        if(typeof hasError == 'boolean'){
-            console.log("dfs");
-            if(hasError){
-                $scope.mailInvalid = "error";
-            } else {
-                $scope.mailInvalid = ""
-            }
-        } else {
-            if($scope.mailInvalid != ""){
-                $scope.mailInvalid = "";
-            } else {
-                $scope.mailInvalid = "error";
-            }
-        }
-    }
 });
 
 
@@ -287,15 +269,15 @@ mailyApp.controller('MailyHomeController', function MailyHomeController($scope, 
 function makeLinks(inputText){
     var replacedText, replacePattern1, replacePattern2, replacePattern3;
 
-    //URLs starting with http://, https://, or ftp://
+    // URLs starting with http://, https://, or ftp://
     replacePattern1 = /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
     replacedText = inputText.replace(replacePattern1, '<a href="$1" target="_blank">$1</a>');
 
-    //URLs starting with "www." (without // before it, or it'd re-link the ones done above).
+    // URLs starting with "www." (without // before it, or it'd re-link the ones done above).
     replacePattern2 = /(^|[^\/])(www\.[\S]+(\b|$))/gim;
     replacedText = replacedText.replace(replacePattern2, '$1<a href="http://$2" target="_blank">$2</a>');
 
-    //Change email addresses to mailto:: links.
+    // Change email addresses to mailto:: links.
     replacePattern3 = /(([a-zA-Z0-9\-\_\.])+@[a-zA-Z\_]+?(\.[a-zA-Z]{2,6})+)/gim;
     replacedText = replacedText.replace(replacePattern3, '<a href="mailto:$1">$1</a>');
 
@@ -318,11 +300,12 @@ function getMailAddress(scope, http){
 }
 
 /**
- * Get server domain
+ * Get available domains on server
  * @param scope
  * @param http
  */
 function getDomains(scope, http){
+    // Request to api
     http.get(apiUrl + 'domains').then(function(response) {
         if(response.data.status == false){
             scope.domains = response.data.data;
@@ -331,8 +314,6 @@ function getDomains(scope, http){
         }
     });
 }
-
-
 
 
 /**
@@ -345,23 +326,46 @@ function Ln2br(input){
     return input.replace(/\n/g, '<br>');
 }
 
-
+/**
+ * Check if value is in array
+ * @param value
+ * @param array
+ * @returns {boolean}
+ * @constructor
+ */
 function IsInArray(value, array){
+    // If it can find index the value is in array
     if(array.indexOf(value) != -1)
         return true;
 
     return false;
 }
 
+/**
+ * Display notification if possible
+ * @param title
+ * @param message
+ * @param icon
+ * @constructor
+ */
 function ShowNotification(title, message, icon){
 
+    // Check if browser support notifications. If not exit
     if(! ('Notification' in window) ){
         console.log('Web Notification not supported');
         return;
     }
 
+    // Ask user for permission.
     Notification.requestPermission(function(permission){
-        var notification = new Notification(title,{body:message,icon:icon, dir:'auto'});
+        // Config notification content and display it.
+        var notification = new Notification(title,{
+            body:message,
+            icon:icon,
+            dir:'auto'
+        });
+
+        // Set time before closing notif
         setTimeout(function(){
             notification.close();
         },3000);
@@ -435,6 +439,15 @@ mailyApp.filter('noEmpty', function() {
         } else {
             return value;
         }
+    };
+});
+
+/**
+ * Check if email local match regex
+ */
+mailyApp.filter('validLocal', function() {
+    return function(value) {
+        return !(emailLocalRegex.test(value));
     };
 });
 

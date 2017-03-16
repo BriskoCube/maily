@@ -14,6 +14,7 @@
     "express": "^4.14.1",
     "forever": "^0.15.3",
     "mimelib": "^0.3.0",
-    "mysql": "^2.13.0"
+    "mysql": "^2.13.0",
+    "node-schedule": "^1.2.0"
   }
 }

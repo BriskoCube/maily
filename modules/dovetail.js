@@ -7,7 +7,7 @@
 
 var fs = require('fs');
 var config = require('./config');
-var mimelib     = require("mimelib");
+var mimelib = require("mimelib");
 
 var formatterFindKeyRegex = /#{([a-z]{1,20})}/g;
 
@@ -18,7 +18,7 @@ var formatterFindKeyRegex = /#{([a-z]{1,20})}/g;
  * @param Callback Call when finished
  * @constructor
  */
-var GetEmails = function(mailLocal, domain, Callback){
+var getEmails = function(mailLocal, domain, Callback){
 
     var returnJson = {};
 
@@ -40,7 +40,7 @@ var GetEmails = function(mailLocal, domain, Callback){
 
                         // Avoid hidden files
                         if (file.charAt(0) != '.')
-                            mails.push(MailParser(data, file, 50));
+                            mails.push(mailParser(data, file, 50));
 
                         count++;
 
@@ -60,35 +60,42 @@ var GetEmails = function(mailLocal, domain, Callback){
                 Callback(returnJson);
             }
         });
-};
+}; //END getEmails
 
 /**
- *
+ * Read mail content from file and return the parsed mail
  * @param mailLocal
  * @param domain
  * @param file
  * @param Callback
  * @constructor
  */
-var GetEmail = function(mailLocal, domain, file, Callback){
+var getEmail = function(mailLocal, domain, file, Callback){
 
     //return email messages folder from domain and maillocal
     var emailFolder = makeEmailFolder(domain, mailLocal);
 
+    //Read file content
     fs.readFile(emailFolder + file, 'utf8', function (err, data) {
 
-        var mail  =MailParser(data, file);
+        //Parse file content into json
+        var mail = mailParser(data, file);
 
-
-            Callback({
-                status: true,
-                data: mail
-            });
-
+        // Return result
+        Callback({
+            status: true,
+            data: mail
+        });
     });
 };
 
-var CountEmail = function(mailLocal, domain, Callback){
+/**
+ * Number of mails inside a folder
+ * @param mailLocal
+ * @param domain
+ * @param Callback
+ */
+var countEmail = function(mailLocal, domain, Callback){
     var emailFolder = makeEmailFolder(domain, mailLocal);
 
     var count = 0;
@@ -96,25 +103,27 @@ var CountEmail = function(mailLocal, domain, Callback){
     // Lis les fichiers du dossier
     fs.readdir(emailFolder, (err, files) => {
 
-        if(typeof  files != "undefined")
+        // Prevent crashes if folder is empty
+        if(typeof files != "undefined")
            count = files.length;
 
         Callback(count);
 
     });
-}
+};
 
 /**
  * Parse text email to json
  * @param mail The email's text
  */
-var MailParser = function(mail, file, maxLength){
+var mailParser = function(mail, file, maxLength){
 
     // Regex used to split header key and value
     var headerRegex = /(([a-zA-Z-]+): (.+)((\n\t(.+))*))/g;
 
     var timeStampRegex = /^[0-9]+/;
 
+    // Generally empty mails are null
     if(typeof mail != 'string')
         mail = "";
 
@@ -132,24 +141,30 @@ var MailParser = function(mail, file, maxLength){
         message: temporyMessage
     };
 
+    // Parse email mime header.
     var mimeHeader = mimelib.parseHeaders(header);
 
+    // Change mime object format to key -> value
     Object.keys(mimeHeader).forEach(function (element) {
         let value = mimeHeader[element];
 
         var tmpHeader = "";
 
+        // concat multiple header line
         for(var i = 0, len = value.length; i < len; i++){
             tmpHeader += value[i];
         }
 
+        // replace "-" whith "_" inside header name.
         output.headers[element.replace(/[-]{1}/g, '_')] = tmpHeader;
     });
 
-    var message = Multipart(output.headers, temporyMessage);
+    // Manage multipart email
+    var message = multipart(output.headers, temporyMessage);
 
-    message = Utf8Decoder(message);
+    message = utf8Decoder(message);
 
+    // If maxLength is set limit message length
     if(typeof maxLength != 'undefined' && message.length > maxLength){
         message = message.split(0, maxLength);
     }
@@ -157,14 +172,24 @@ var MailParser = function(mail, file, maxLength){
     output.message = message;
 
     return output;
-};
+}; //END mailParser
 
-var Boundaries = function(headers){
+/**
+ * Get part boundaries from headers
+ * @param headers
+ * @returns {boolean}
+ */
+var boundaries = function(headers){
 
     var boundary = false;
 
+    // Key exist
     if(headers.hasOwnProperty('content_type')){
-        var regexResult = headers.content_type.match(/"(.+)"/)
+
+        //Get only quoted string
+        var regexResult = headers.content_type.match(/"(.+)"/);
+
+        // If something is found add it to boundary
         if(regexResult != null && regexResult.length > 1){
             boundary = regexResult[1];
         }
@@ -173,22 +198,32 @@ var Boundaries = function(headers){
     return boundary;
 };
 
-var Utf8Decoder = function(string){
+/**
+ *
+ * @param string
+ * @returns {XML|*}
+ */
+var utf8Decoder = function(string){
+
+    // Regex used to select paterns =c2=xx or =xx
     var utf8Regex = /=(((C2|C3)=([0-9a-f]{2}))|([0-9a-f]{2}))/gi;
 
+    // Function call foreach replace.
     string = string.replace(utf8Regex, function (match, p1, p2, p3, p4, p5) {
-
+        // patern match =c2=xx
         if(typeof p3 != 'undefined' && typeof p4 != 'undefined'){
             return (config.utf8[p3.toLowerCase()][p4.toLowerCase()]);
-        } else {
+        } // patern match =xx
+        else {
             return (config.utf8[p5.toLowerCase()]);
         }
     });
 
+    // remove line breaks
     string = string.replace(/=\n/gi, '');
 
     return string;
-}
+};
 
 /**
  * Split message between each arts
@@ -197,25 +232,25 @@ var Utf8Decoder = function(string){
  * @returns {*}
  * @constructor
  */
-var Multipart = function(headers, message){
-    var boundary = Boundaries(headers);
+var multipart = function(headers, message){
+    var boundary = boundaries(headers);
 
     if(boundary != false){
 
         var headerRegex = /(.{1,}:.{1,}\n)+[\n\r]{1,}/;
-
         var regexDocType = /.{0,}:.{0,}(text\/(.+))[;]/;
 
         var splittedMessages = message.split(boundary);
-
         var splittedMessage = splittedMessages[2];
 
+        // Find part's headers
         var docType = splittedMessage.match(regexDocType);
 
         if(docType && docType.length > 1){
             headers.docType = docType[1];
         }
 
+        // Remove part's header and "-"
         return splittedMessage.replace(headerRegex, '').replace(/[-]+$/, '');
     }
 
@@ -232,7 +267,7 @@ var Multipart = function(headers, message){
  * @param values New values
  * @constructor
  */
-var Formatter = function(string, values){
+var formatter = function(string, values){
 
     var matches, output = [];
 
@@ -254,23 +289,34 @@ var Formatter = function(string, values){
     return string;
 };
 
-//Delete email folder
-var DeleteFolder = function(domain, mailLocal){
+/**
+ * Delete email folder
+ * @param domain
+ * @param mailLocal
+ * @constructor
+ */
+var deleteFolder = function(domain, mailLocal){
     var path = makeEmailFolder(domain, mailLocal);
 
     fs.rmdirSync(path);
-}
+};
 
+/**
+ * Build email path string
+ * @param domain
+ * @param mailLocal
+ * @returns {string}
+ */
 var makeEmailFolder = function(domain, mailLocal){
     // Create email path string
-    var emailsFolder = Formatter(config.dovetail.mailPaths[0], {
+    var emailsFolder = formatter(config.dovetail.mailPaths[1], {
         domain: domain,
         user: mailLocal
     });
 
     // Make absolute path
     return config.dovetail.path + emailsFolder;
-}
+};
 
 /**
  * Remove mime encode
@@ -293,8 +339,8 @@ var mimeCleaner = function(string){
 };
 
 // Makes variables public
-exports.Formatter = Formatter;
-exports.GetEmails = GetEmails;
-exports.GetEmail = GetEmail;
-exports.CountEmail = CountEmail;
-exports.DeleteFolder = DeleteFolder;
+exports.formatter = formatter;
+exports.getEmails = getEmails;
+exports.getEmail = getEmail;
+exports.countEmail = countEmail;
+exports.deleteFolder = deleteFolder;

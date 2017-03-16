@@ -1,11 +1,15 @@
 /**
- * Created by quartierju on 02.02.2017.
+ * ETML
+ * Auteur       : quartierju
+ * DATE         : 08.02.2017
+ * Description  :
  */
 
+// My sql config and credentials
 var mysql = {
     host: 'localhost',
     user: 'nodeapi',
-    password: '<pass>',
+    password: 'sPOuCGWdWV569PS4',
     database: 'postfixadmin'
 };
 
@@ -24,8 +28,7 @@ var dovetail = {
         '#{domain}/#{user}/Maildir/cur/',
         '#{domain}/#{user}/Maildir/new/',
     ]
-
-}
+};
 
 // error messages
 var strings = {
@@ -79,6 +82,7 @@ var strings = {
     }
 }
 
+// Main app config
 var main = {
     daysBeforeDelete:{
         address: 2,
@@ -354,7 +358,6 @@ var utf8 = {
 }
 
 // Makes variables public
-
 exports.mysql = mysql;
 exports.server = server;
 exports.strings = strings;

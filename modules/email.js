@@ -20,7 +20,7 @@ var domain;
  * @returns {{}}
  * @constructor
  */
-var Add = function(emailLocal, fullName, password, statusCallback){
+var add = function(emailLocal, fullName, password, statusCallback){
     var returnJson = {};
 
     // Verify email validity
@@ -29,7 +29,7 @@ var Add = function(emailLocal, fullName, password, statusCallback){
     if(emailValidity){
 
         //Check if email exist
-        Exist(emailLocal, function(){
+        exist(emailLocal, function(){
 
             //Build email address
             var newEmail = `${emailLocal}@${domain}`;
@@ -39,30 +39,30 @@ var Add = function(emailLocal, fullName, password, statusCallback){
                 address: newEmail,
                 goto: newEmail,
                 domain: domain,
-                created: MySqlNow(),
-                modified: MySqlNow(),
+                created: mySqlNow(),
+                modified: mySqlNow(),
                 active: 1
             };
 
             // Insert the alias
-            db.Insert('alias', aliasValues, function(){
+            db.insert('alias', aliasValues, function(){
 
                 // Values to insert inside mailbox table
                 var mailboxValues = {
                     username: newEmail,
-                    password: Md5(password) /*'$1$5810ec76$u7K9h9y8R.qvdOXDs.WoQ1'*/,
+                    password: md5(password) /*'$1$5810ec76$u7K9h9y8R.qvdOXDs.WoQ1'*/,
                     name: fullName,
                     maildir: newEmail+'/',
                     quota: 0,
                     local_part: emailLocal,
                     domain: domain,
-                    created: MySqlNow(),
-                    modified: MySqlNow(),
+                    created: mySqlNow(),
+                    modified: mySqlNow(),
                     active: 1
                 };
 
                 // Insert the mailbox
-                db.Insert('mailbox', mailboxValues, function(){
+                db.insert('mailbox', mailboxValues, function(){
                     returnJson.status = true;
                     returnJson.message = config.strings.email.add.created;
 
@@ -95,7 +95,7 @@ var Add = function(emailLocal, fullName, password, statusCallback){
  * @param newEmailLocal
  * @constructor
  */
-var Update = function(oldEmailLocal,newEmailLocal){
+var update = function(oldEmailLocal,newEmailLocal){
 
 }
 
@@ -115,11 +115,11 @@ var Delete = function(emailLocal, Callback){
         var emailAddress = `${emailLocal}@${domain}`;
 
         //Delete the mailbox from db
-        db.Delete(`DELETE FROM mailbox WHERE username = '${emailAddress}';`, function (result) {
+        db.remove(`DELETE FROM mailbox WHERE username = '${emailAddress}';`, function (result) {
             if (result.affectedRows > 0) {
 
                 //Delete aliases and relative aliases
-                db.Delete(`DELETE FROM alias WHERE address = '${emailAddress}' OR goto = '${emailAddress}';`, function (resultAlias) {
+                db.remove(`DELETE FROM alias WHERE address = '${emailAddress}' OR goto = '${emailAddress}';`, function (resultAlias) {
                     if (resultAlias.affectedRows > 0) {
                         returnJson.status = true;
                         returnJson.message = config.strings.email.delete.ok;
@@ -144,7 +144,7 @@ var Delete = function(emailLocal, Callback){
         Callback(returnJson);
     }
 
-}
+}; // END
 
 /**
  * An email exist or not ?
@@ -153,9 +153,9 @@ var Delete = function(emailLocal, Callback){
  * @param ExistCallback
  * @constructor
  */
-var Exist = function(emailLocal, NotExistCallback, ExistCallback){
+var exist = function(emailLocal, NotExistCallback, ExistCallback){
 
-    db.Select(`SELECT * FROM alias WHERE address = '${emailLocal}@${domain}'`, function(result){
+    db.select(`SELECT * FROM alias WHERE address = '${emailLocal}@${domain}'`, function(result){
         if(result.length == 0){
             NotExistCallback();
         }else{
@@ -170,7 +170,7 @@ var Exist = function(emailLocal, NotExistCallback, ExistCallback){
  * @param newDomain
  * @constructor
  */
-var SetDomain = function(newDomain){
+var setDomain = function(newDomain){
     domain = newDomain;
 }
 
@@ -179,8 +179,8 @@ var SetDomain = function(newDomain){
  * @param Callback
  * @constructor
  */
-var List = function(Callback){
-    db.Select(`SELECT username,name,maildir,quota,local_part,domain,created,modified,active  FROM mailbox WHERE domain = '${domain}'`, function(result){
+var list = function(Callback){
+    db.select(`SELECT username,name,maildir,quota,local_part,domain,created,modified,active  FROM mailbox WHERE domain = '${domain}'`, function(result){
 
         Callback({
             status: true,
@@ -194,11 +194,11 @@ var List = function(Callback){
  * @returns {string}
  * @constructor
  */
-var MySqlNow = function(){
+var mySqlNow = function(){
     return (new Date()).toISOString().substring(0, 19).replace('T', ' ');
 }
 
-var Md5 = function(password){
+var md5 = function(password){
     var crypto = require('crypto');
     var md5 = crypto.createHash('md5').update(password).digest("hex");
 
@@ -206,9 +206,9 @@ var Md5 = function(password){
 }
 
 // Makes variables public
-exports.Add = Add;
-exports.Update = Update;
-exports.Delete = Delete;
-exports.Exist = Exist;
-exports.List = List;
-exports.SetDomain = SetDomain;
+exports.add = add;
+exports.update = update;
+exports.remove = Delete;
+exports.exist = exist;
+exports.list = list;
+exports.setDomain = setDomain;

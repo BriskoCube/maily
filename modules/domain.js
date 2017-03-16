@@ -1,6 +1,10 @@
 /**
- * Created by quartierju on 02.02.2017.
+ * ETML
+ * Auteur       : Julien Quartier
+ * DATE         : 02.02.2017
+ * Description  : Databse helper. Basic db functions
  */
+
 var db = require('./db');
 
 /**
@@ -8,8 +12,8 @@ var db = require('./db');
  * @param Callback
  * @constructor
  */
-var List = function(Callback){
-    db.Select(`SELECT * FROM domain WHERE domain <> 'ALL'`, function(result){
+var list = function(Callback){
+    db.select(`SELECT * FROM domain WHERE domain <> 'ALL'`, function(result){
         Callback({
             status: true,
             data: result
@@ -24,8 +28,8 @@ var List = function(Callback){
  * @param ExistCallback Callback if the domain exist
  * @constructor
  */
-var Exist = function(domain, NotExistCallback, ExistCallback){
-    db.Select(`SELECT * FROM domain WHERE domain = '${domain}'`, function(result){
+var exist = function(domain, NotExistCallback, ExistCallback){
+    db.select(`SELECT * FROM domain WHERE domain = '${domain}'`, function(result){
         if(result.length == 0){
             NotExistCallback();
         }else{
@@ -35,5 +39,5 @@ var Exist = function(domain, NotExistCallback, ExistCallback){
 }
 
 // Makes variables public
-exports.Exist = Exist;
-exports.List = List;
+exports.exist = exist;
+exports.list = list;

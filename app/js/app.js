@@ -65,15 +65,15 @@ mailyApp.controller('MailyListController', function MailyListController($scope, 
             domain = emailParts[1];
         }
 
-        //Load avalible domains
+        //Load available domains
         getDomains($scope, $http);
 
-        //Domain changer event listener
+        // On domain changed load domain's addresses
         $scope.domainChanged = function () {
             getMailAddress($scope, $http);
         };
 
-        // Email changed event listener
+        // Load mails on address changed
         $scope.emailAddressChanged = function () {
             getMails($scope, $http);
         };
@@ -90,7 +90,7 @@ mailyApp.controller('MailyListController', function MailyListController($scope, 
             mailReloader = null;
         }
 
-        // Call the function every 10 sec
+        // Get mails from server every 10 sec
         mailReloader = $interval(function() {
             getMails();
         }, 10000);
@@ -239,7 +239,7 @@ mailyApp.controller('MailyHomeController', function MailyHomeController($scope, 
         $scope.popupMessage = message; //set message
         $scope.buttonShow = false; //Hide button. by default
 
-        //if button has text show button
+        //if buttonText defined show button
         if(typeof buttonText != 'undefined'){
             $scope.buttonShow = true;
             $scope.buttonText = buttonText;
@@ -267,19 +267,19 @@ mailyApp.controller('MailyHomeController', function MailyHomeController($scope, 
  * @returns {XML|string|*}
  */
 function makeLinks(inputText){
-    var replacedText, replacePattern1, replacePattern2, replacePattern3;
+    var replacedText, httpFtpPattern, wwwPattern, mailtoPattern;
 
     // URLs starting with http://, https://, or ftp://
-    replacePattern1 = /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
-    replacedText = inputText.replace(replacePattern1, '<a href="$1" target="_blank">$1</a>');
+    httpFtpPattern = /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
+    replacedText = inputText.replace(httpFtpPattern, '<a href="$1" target="_blank">$1</a>');
 
     // URLs starting with "www." (without // before it, or it'd re-link the ones done above).
-    replacePattern2 = /(^|[^\/])(www\.[\S]+(\b|$))/gim;
-    replacedText = replacedText.replace(replacePattern2, '$1<a href="http://$2" target="_blank">$2</a>');
+    wwwPattern = /(^|[^\/])(www\.[\S]+(\b|$))/gim;
+    replacedText = replacedText.replace(wwwPattern, '$1<a href="http://$2" target="_blank">$2</a>');
 
     // Change email addresses to mailto:: links.
-    replacePattern3 = /(([a-zA-Z0-9\-\_\.])+@[a-zA-Z\_]+?(\.[a-zA-Z]{2,6})+)/gim;
-    replacedText = replacedText.replace(replacePattern3, '<a href="mailto:$1">$1</a>');
+    mailtoPattern = /(([a-zA-Z0-9\-\_\.])+@[a-zA-Z\_]+?(\.[a-zA-Z]{2,6})+)/gim;
+    replacedText = replacedText.replace(mailtoPattern, '<a href="mailto:$1">$1</a>');
 
     return replacedText;
 }
@@ -290,7 +290,7 @@ function makeLinks(inputText){
  * @param http
  */
 function getMailAddress(scope, http){
-    http.get(apiUrl + 'emails/maily.ovh').then(function(response) {
+    http.get(apiUrl + 'emails/' + domain).then(function(response) {
         if(response.data.status == true){
             scope.mailAddresses = response.data.data;
         } else {

@@ -54,27 +54,27 @@ function init(){
     app.use(bodyParser.json());
 
     // Start mySQL connection
-    db.Connect();
+    db.connect();
 
     apiRouter = express.Router();
     httpRouter = express.Router();
 
-    Routes();
-    Crons();
+    routes();
+    crons();
 }
 
 /**
  * Create crons. Call a function every 5 minutes, every hours, or what you want. Feel free.
  */
-function Crons(){
+function crons(){
 
     // Execute cron every 5 minutes
-    var deleteMail = schedule.scheduleJob('*/5 * * * * *', function(){
+    var deleteMail = schedule.scheduleJob('*/5 * * * *', function(){
 
-        Title("Start deleting");
+        title("Start deleting");
 
-        email.SetDomain('maily.ovh');
-        email.List(function(emails){
+        email.setDomain('maily.ovh');
+        email.list(function(emails){
 
             for(var i = 0, len = emails.data.length; i < len; i++){
                 //Email address informations
@@ -87,15 +87,15 @@ function Crons(){
 
                 //If days before delete has been reached and the name is in the allowed names
                 if(deltaDays > config.main.daysBeforeDelete.address
-                    && IsInArray(data.name, config.main.nameToDelete)){
+                    && isInArray(data.name, config.main.nameToDelete)){
 
                     //Allow to use data in callback. self-executing anonymous function;
                     (function(actData) {
-                        MailFolderEmpty(actData.local_part, actData.domain, function(isEmpty){
+                        mailFolderEmpty(actData.local_part, actData.domain, function(isEmpty){
                             if(isEmpty){
-                                console.log(HourPrefixer(actData.username));
+                                console.log(hourPrefixer(actData.username));
 
-                                email.Delete(actData.local_part, function(){
+                                email.remove(actData.local_part, function(){
                                     //TODO implement delete
                                 });
                             }
@@ -110,7 +110,7 @@ function Crons(){
 /**
  * Define routes and callbackfunction
  */
-function Routes(){
+function routes(){
     // Use for all requests
     apiRouter.use(function(req, res, next) {
         next();
@@ -118,16 +118,16 @@ function Routes(){
 
     apiRouter
         // Home route
-        .get('/', GetHomePage)
+        .get('/', getHomePage)
         // Email address
-        .post('/email', PostEmailAddress)
-        .delete('/email/:domain/:email', DeleteEmailAddress)
+        .post('/email', postEmailAddress)
+        .delete('/email/:domain/:email', deleteEmailAddress)
         // Email messages
-        .get('/email/:domain/:email', GetEmailMessages)
-        .get('/email/:domain/:email/:file', GetEmailMessage)
-        .get('/emails/:domain', GetEmails)
+        .get('/email/:domain/:email', getEmailMessages)
+        .get('/email/:domain/:email/:file', getEmailMessage)
+        .get('/emails/:domain', getEmails)
         // Domains
-        .get('/domains', GetDomains);
+        .get('/domains', getDomains);
 
     httpRouter.get('*',function(req,res){
         res.redirect('https://maily.ovh:6580'+req.url)
@@ -135,32 +135,32 @@ function Routes(){
 }
 
 /**
- *
+ * Home page controller
  * @param req
  * @param res
  * @constructor
  */
-function GetHomePage(req, res){
+function getHomePage(req, res){
     res.json({ message: 'Welcome to Maily API!' });
 }
 
 /**
- *
+ * Add a new email address inside db
  * @param req
  * @param res
  * @constructor
  */
-function PostEmailAddress(req, res){
+function postEmailAddress(req, res){
     //Get post parameters
     var newEmailName = req.body.email;
     var fullName = req.body.full_name;
     var domain = req.body.domain;
     var password = req.body.password;
 
-    if(IsString(fullName) && IsString(password) && IsDomain(domain) && IsLocal(newEmailName)){
+    if(isString(fullName) && isString(password) && isDomain(domain) && isLocal(newEmailName)){
         //Add email into db
-        email.SetDomain(domain);
-        email.Add(newEmailName, fullName, password, function(status){
+        email.setDomain(domain);
+        email.add(newEmailName, fullName, password, function(status){
             res.json(status);
         });
     } else {
@@ -171,23 +171,23 @@ function PostEmailAddress(req, res){
 }
 
 /**
- *
+ * Delete email address form db
  * @param req
  * @param res
  * @constructor
  */
-function DeleteEmailAddress(req, res){
+function deleteEmailAddress(req, res){
     //Get url parameters
     var emailToDelete = req.params.email;
     var domain = req.params.domain;
 
     //If all request param are ok. Continue
-    if(IsDomain(domain)
-        && IsLocal(emailToDelete)){
+    if(isDomain(domain)
+        && isLocal(emailToDelete)){
 
         //Delete email
-        email.SetDomain(domain);
-        email.Delete(emailToDelete, function(status){
+        email.setDomain(domain);
+        email.remove(emailToDelete, function(status){
             //Return delete status
             res.json(status);
         });
@@ -202,22 +202,22 @@ function DeleteEmailAddress(req, res){
 }
 
 /**
- *
+ * Get email messages from dovetails
  * @param req
  * @param res
  * @constructor
  */
-function GetEmailMessages(req, res){
+function getEmailMessages(req, res){
     //Get url parameters
     var emailLocal = req.params.email;
     var domain = req.params.domain;
 
     //If all request param are ok. Continue
-    if(IsDomain(domain)
-        && IsLocal(emailLocal)) {
+    if(isDomain(domain)
+        && isLocal(emailLocal)) {
 
         //Return email messages
-        dovetail.GetEmails(emailLocal, domain, function (mails) {
+        dovetail.getEmails(emailLocal, domain, function (mails) {
             res.json(mails);
         });
     } else {
@@ -229,13 +229,13 @@ function GetEmailMessages(req, res){
 }
 
 /**
- *
+ * Get available domains
  * @param req
  * @param res
  * @constructor
  */
-function GetDomains(req, res){
-    domain.List(function(domains){
+function getDomains(req, res){
+    domain.list(function(domains){
         res.json(domains);
     });
 }
@@ -246,16 +246,16 @@ function GetDomains(req, res){
  * @param res
  * @constructor
  */
-function GetEmails(req, res){
+function getEmails(req, res){
     // Get domain in url
     var domain = req.params.domain;
 
     // If the domain is valid
-    if(IsDomain(domain)) {
-        email.SetDomain(domain);
+    if(isDomain(domain)) {
+        email.setDomain(domain);
 
         //Return email Addresses
-        email.List(function (mailAddress) {
+        email.list(function (mailAddress) {
             res.json(mailAddress);
         });
     } else {
@@ -272,19 +272,19 @@ function GetEmails(req, res){
  * @param res
  * @constructor
  */
-function GetEmailMessage(req, res){
+function getEmailMessage(req, res){
     //Get url parameters
     var emailLocal = req.params.email;
     var domain = req.params.domain;
     var file = req.params.file;
 
     //If all request param are ok. Continue
-    if(IsDomain(domain)
-        && IsLocal(emailLocal)
-        && IsString(file)) {
+    if(isDomain(domain)
+        && isLocal(emailLocal)
+        && isString(file)) {
 
         //Get mails for a specific address
-        dovetail.GetEmail(emailLocal, domain, file,function(mails){
+        dovetail.getEmail(emailLocal, domain, file,function(mails){
             //Return mails
             res.json(mails);
         });
@@ -302,7 +302,7 @@ function GetEmailMessage(req, res){
  * @returns {*}
  * @constructor
  */
-function HourPrefixer(string){
+function hourPrefixer(string){
     var date = new Date();
     return `[${date.getHours()}:${date.getMinutes()}] ${string}`;
 }
@@ -312,10 +312,10 @@ function HourPrefixer(string){
  * @param string
  * @constructor
  */
-function Title(string){
+function title(string){
     console.log();
     console.log();
-    console.log(HourPrefixer(`►▬▬▬▬ ${string} ▬▬▬▬◄`));
+    console.log(hourPrefixer(`►▬▬▬▬ ${string} ▬▬▬▬◄`));
 }
 
 /**
@@ -324,7 +324,7 @@ function Title(string){
  * @returns {boolean}
  * @constructor
  */
-function IsString(string){
+function isString(string){
     return typeof string == "string";
 }
 
@@ -335,8 +335,8 @@ function IsString(string){
  * @returns {boolean}
  * @constructor
  */
-function IsDomain(dom){
-    return IsString(dom) && domainRegex.test(dom);
+function isDomain(dom){
+    return isString(dom) && domainRegex.test(dom);
 }
 
 /**
@@ -345,8 +345,8 @@ function IsDomain(dom){
  * @returns {boolean}
  * @constructor
  */
-function  IsLocal(local){
-    return IsString(local) && emailLocalRegex.test(local);
+function  isLocal(local){
+    return isString(local) && emailLocalRegex.test(local);
 }
 
 /**
@@ -356,7 +356,7 @@ function  IsLocal(local){
  * @returns {boolean}
  * @constructor
  */
-function IsInArray(value, array){
+function isInArray(value, array){
     if(array.indexOf(value) != -1)
         return true;
 
@@ -370,10 +370,10 @@ function IsInArray(value, array){
  * @param Callback
  * @constructor
  */
-function MailFolderEmpty(localPart, domain, Callback){
+function mailFolderEmpty(localPart, domain, Callback){
 
     //Count emails
-    dovetail.CountEmail(localPart, domain, function(count){
+    dovetail.countEmail(localPart, domain, function(count){
         if(count != 0)
             Callback(false);
         else

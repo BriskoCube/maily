@@ -187,11 +187,13 @@ var boundaries = function(headers){
     if(headers.hasOwnProperty('content_type')){
 
         //Get only quoted string
-        var regexResult = headers.content_type.match(/"(.+)"/);
+        var regexResult = headers.content_type.match(/boundary="(.+)"/);
 
         // If something is found add it to boundary
         if(regexResult != null && regexResult.length > 1){
+            //console.log(regexResult);
             boundary = regexResult[1];
+            
         }
     }
 
@@ -242,6 +244,8 @@ var multipart = function(headers, message){
 
         var splittedMessages = message.split(boundary);
         var splittedMessage = splittedMessages[2];
+
+        console.log(boundary);
 
         // Find part's headers
         var docType = splittedMessage.match(regexDocType);

@@ -193,7 +193,7 @@ var boundaries = function(headers){
         if(regexResult != null && regexResult.length > 1){
             //console.log(regexResult);
             boundary = regexResult[1];
-            
+
         }
     }
 
@@ -245,7 +245,6 @@ var multipart = function(headers, message){
         var splittedMessages = message.split(boundary);
         var splittedMessage = splittedMessages[2];
 
-        console.log(boundary);
 
         // Find part's headers
         var docType = splittedMessage.match(regexDocType);

@@ -119,7 +119,7 @@ var countEmail = function(mailLocal, domain, Callback){
 var mailParser = function(mail, file, maxLength){
 
     // Regex used to split header key and value
-    var headerRegex = /(([a-zA-Z-]+): (.+)((\n\t(.+))*))/g;
+    //var headerRegex = /(([a-zA-Z-]+): (.+)((\n\t(.+))*))/g;
 
     var timeStampRegex = /^[0-9]+/;
 
@@ -156,7 +156,7 @@ var mailParser = function(mail, file, maxLength){
         }
 
         // replace "-" whith "_" inside header name.
-        output.headers[element.replace(/[-]{1}/g, '_')] = tmpHeader;
+        output.headers[element.replace(/[-]/g, '_')] = tmpHeader;
     });
 
     // Manage multipart email
@@ -239,12 +239,11 @@ var multipart = function(headers, message){
 
     if(boundary != false){
 
-        var headerRegex = /(.{1,}:.{1,}\n)+[\n\r]{1,}/;
-        var regexDocType = /.{0,}:.{0,}(text\/(.+))[;]/;
+        var headerRegex = /(.+:.+\n)+[\n\r]+/;
+        var regexDocType = /.+:.+(text\/(.+))[;]/;
 
         var splittedMessages = message.split(boundary);
         var splittedMessage = splittedMessages[2];
-
 
         // Find part's headers
         var docType = splittedMessage.match(regexDocType);

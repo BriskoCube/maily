@@ -112,7 +112,7 @@ mailyApp.controller('MailyListController', function MailyListController($scope, 
             $scope.from = mailObject.headers.from;
             $scope.to = mailObject.headers.to;
             $scope.timestamp = mailObject.id;
-            $scope.subject = mailObject.headers.subject
+            $scope.subject = mailObject.headers.subject;
 
             // Load mail body from server
             $http.get(apiUrl + `email/${domain}/${local}/${mailObject.file}`).then(function(response) {
@@ -148,7 +148,7 @@ mailyApp.controller('MailyListController', function MailyListController($scope, 
 
                 if( $scope.mails.length < loadedMails.length){
                     if($scope.mails.length != 0){
-                        var dif = loadedMails.length - $scope.mails.length
+                        var dif = loadedMails.length - $scope.mails.length;
 
                         ShowNotification(dif + " new mails", "", "/img/maily-logo-m.png");
                     }
@@ -173,8 +173,7 @@ mailyApp.controller('MailyHomeController', function MailyHomeController($scope, 
 
     // Year for copyrights
     var d = new Date();
-    var n = d.getFullYear();
-    $scope.year = n;
+    $scope.year = d.getFullYear();
 
     $scope.domain = domain;
 
@@ -278,7 +277,7 @@ function makeLinks(inputText){
     replacedText = replacedText.replace(wwwPattern, '$1<a href="http://$2" target="_blank">$2</a>');
 
     // Change email addresses to mailto:: links.
-    mailtoPattern = /(([a-zA-Z0-9\-\_\.])+@[a-zA-Z\_]+?(\.[a-zA-Z]{2,6})+)/gim;
+    mailtoPattern = /(([a-zA-Z0-9_.-])+@[a-zA-Z_]+?(\.[a-zA-Z]{2,6})+)/gim;
     replacedText = replacedText.replace(mailtoPattern, '<a href="mailto:$1">$1</a>');
 
     return replacedText;
@@ -357,7 +356,7 @@ function ShowNotification(title, message, icon){
     }
 
     // Ask user for permission.
-    Notification.requestPermission(function(permission){
+    Notification.requestPermission(function(){
         // Config notification content and display it.
         var notification = new Notification(title,{
             body:message,

@@ -19,7 +19,7 @@ var list = function(Callback){
             data: result
         });
     });
-}
+};
 
 /**
  * Allow to know if a domain exist
@@ -36,7 +36,7 @@ var exist = function(domain, NotExistCallback, ExistCallback){
             ExistCallback();
         }
     });
-}
+};
 
 // Makes variables public
 exports.exist = exist;

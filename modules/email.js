@@ -87,7 +87,7 @@ var add = function(emailLocal, fullName, password, statusCallback){
     }
 
     return returnJson;
-}
+};
 
 /**
  * Update email locale
@@ -97,7 +97,7 @@ var add = function(emailLocal, fullName, password, statusCallback){
  */
 var update = function(oldEmailLocal,newEmailLocal){
 
-}
+};
 
 /**
  * Delete an email

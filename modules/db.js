@@ -8,7 +8,7 @@
 var mysql       = require('mysql');
 var config      = require('./config');
 var connection  = null;
-var selectRegex = /^(SELECT){1}.+(FROM){1}.+/;
+var selectRegex = /^(SELECT).+(FROM).+/;
 
 /**
  * Connect to mysql
@@ -32,7 +32,7 @@ var connect = function() {
 var select = function(query, Callback) {
     //Verifie la structure du select
     if(selectRegex.test(query)){
-        connection.query(query, function (err, rows, fields) {
+        connection.query(query, function (err, rows) {
             if (!err) {
                 Callback(rows);
             }
@@ -67,7 +67,7 @@ var remove = function(query, Callback){
     connection.query(query, function(err, result) {
         Callback(result);
     });
-}
+};
 
 // Makes variables public
 exports.connect = connect;

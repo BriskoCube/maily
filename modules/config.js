@@ -26,7 +26,7 @@ var dovetail = {
     path:'/var/vmail/',
     mailPaths:[
         '#{domain}/#{user}/Maildir/cur/',
-        '#{domain}/#{user}/Maildir/new/',
+        '#{domain}/#{user}/Maildir/new/'
     ]
 };
 
@@ -51,7 +51,7 @@ var strings = {
             error:{
                 "str": 'Error while deleting email',
                 "code": 21
-            },
+            }
         },
         format:{
             ok:{
@@ -80,7 +80,7 @@ var strings = {
             }
         }
     }
-}
+};
 
 // Main app config
 var main = {
@@ -355,7 +355,7 @@ var utf8 = {
         "be":'þ',
         "bf":'ÿ'
     }
-}
+};
 
 // Makes variables public
 exports.mysql = mysql;

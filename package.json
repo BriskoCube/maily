@@ -12,7 +12,7 @@
     "async": "^2.1.4",
     "body-parser": "^1.16.0",
     "express": "^4.14.1",
-    "forever": "^0.15.3",
+    "forever": "^2.0.0",
     "mimelib": "^0.3.0",
     "mysql": "^2.13.0",
     "node-schedule": "^1.2.0"

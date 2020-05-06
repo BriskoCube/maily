@@ -4,7 +4,9 @@
   "description": "An api to access dovetails email",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "author": "Julien Quartier",
   "license": "ISC",
@@ -15,6 +17,8 @@
     "forever": "^0.15.3",
     "mimelib": "^0.3.0",
     "mysql": "^2.13.0",
-    "node-schedule": "^1.2.0"
-  }
+    "node-schedule": "^1.2.0",
+    "snyk": "^1.319.0"
+  },
+  "snyk": true
 }
